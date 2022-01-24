@@ -190,6 +190,7 @@ class Decoder(nn.Module):
 
         # Generating arang(input_length), broadcasted across batch_size
         runner = self.runner.repeat(input_length)
+        #runner初始化为tensor([0., 1., 2., 3., 4.])
         for i in range(input_length):
             runner.data[i] = i
         runner = runner.unsqueeze(0).expand(batch_size, -1).long()
@@ -236,8 +237,9 @@ class Decoder(nn.Module):
 
             # Get maximum probabilities and indices
             max_probs, indices = masked_outs.max(1)
+            #默认状态下，第一列全是1，其余为0
             one_hot_pointers = (runner == indices.unsqueeze(1).expand(-1, outs.size()[1])).float()
-
+            #默认状态下mask值都是1，然后看过的就把变成0
             # Update mask to ignore seen indices
             mask  = mask * (1 - one_hot_pointers)
 
@@ -296,13 +298,14 @@ class PointerNet(nn.Module):
         :param Tensor inputs: Input sequence
         :return: Pointers probabilities and indices
         """
-
+        # inputs.shape = torch.Size([256, 5, 2]):(batch_size,seq_len,dim)原始二维坐标
         batch_size = inputs.size(0)
         input_length = inputs.size(1)
 
         decoder_input0 = self.decoder_input0.unsqueeze(0).expand(batch_size, -1)
 
         inputs = inputs.view(batch_size * input_length, -1)
+        # embedded_inputs.shape=torch.Size([256, 5, 128])
         embedded_inputs = self.embedding(inputs).view(batch_size, input_length, -1)
 
         encoder_hidden0 = self.encoder.init_hidden(embedded_inputs)

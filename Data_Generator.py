@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 import numpy as np
 import itertools
 from tqdm import tqdm
+from torch.utils.data import DataLoader
 
 
 def tsp_opt(points):
@@ -88,3 +89,17 @@ class TSPDataset(Dataset):
             v[points[i]] = 1
 
         return vec
+
+if __name__=='__main__':
+    dataset = TSPDataset(100,7)
+
+    dataloader = DataLoader(dataset,
+                            batch_size=7,
+                            shuffle=True,
+                            num_workers=4)
+
+    iterator = tqdm(dataloader, unit='Batch')
+
+    for i_batch, sample_batched in enumerate(iterator):
+        print(i_batch, sample_batched)
+        break
